@@ -1,9 +1,9 @@
 let modInfo = {
 	name: "The-Periodic-Incremental-Tree",
 	id: "yrrightbutthisisliustree",
-	author: "liu",
+	author: "Liue308 : QqQe308",
 	pointsName: "基本粒子",
-	modFiles: ["layers.js", "tree.js","someUsefulFunctions_QwQe308.js"],
+	modFiles: ["layers.js", "tree.js","someUsefulFunctions_QwQe308.js","reactions.js","vue.js"],
 
 	discordName: "",
 	discordLink: "",
@@ -13,14 +13,17 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.2.alpha",
-	name: "第二周期更新开发版",
+	num: "0.2.2",
+	name: "第二周期更新I",
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+	<h3>v0.2.2</h3><br>
+		- 添加两个新层级<br>
+		- 氦层更多内容<br>
 	<h3>v0.1.3</h3><br>
 		- 修复了购买项有时能买却不能买的bug<br>
-		- 增加更多游戏内容<br>
+		- 增加新资源<br>
 	<h3>v0.1</h3><br>
 		- 增加氢层一些东西<br>
 		- 增加氦层<br>
@@ -40,7 +43,7 @@ function getStartPoints(){
 
 // Determines if it should show points/sec
 function canGenPoints(){
-	if(!hasUpgrade("p",11))
+	if(!hasUpgrade("p",11)||isEndgame())
 		return false
 	return true
 }
@@ -49,7 +52,6 @@ function canGenPoints(){
 function getPointGen() {
 	if(!canGenPoints())
 		return new Decimal(0)
-
 	let gain = zero
 	if(hasUpgrade("p",11)) gain = gain.add(upgradeEffect("p",11))
 	if(hasUpgrade("p",12)) gain = gain.add(upgradeEffect("p",12))
@@ -59,6 +61,7 @@ function getPointGen() {
 	if(hasUpgrade("p",24)) gain = gain.mul(upgradeEffect("p",24))
 	if(hasUpgrade("p",32)) gain = gain.mul(upgradeEffect("p",32))
 	if(hasUpgrade("p",34)) gain = gain.mul(10)
+	if(hasUpgrade("p",43)) gain = gain.mul(upgradeEffect("p",43))
 	if(hasUpgrade("h",11)) gain = gain.mul(upgradeEffect("h",11))
 	if(hasUpgrade("h",12)) gain = gain.mul(upgradeEffect("h",12))
 	if(hasUpgrade("h",21)) gain = gain.mul(upgradeEffect("h",21))
@@ -70,6 +73,7 @@ function getPointGen() {
 	if(getBuyableAmount("p",11).gte(1)) gain = gain.mul(buyableEffect("p",11))
 	if(hasMilestone("h",3)) gain = gain.mul(layers.he.balloonBoostPoints())
 	if(player.he.upTime.gt(0)) gain = gain.mul(layers.he.boomedBalloonBoostPoints())
+	if(hasMilestone("he",2)) gain = gain.mul(layers.he.temPointBoostPoints())
 	return gain
 }
 
@@ -83,7 +87,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.he.points.gte(56) 
+	return player.be.points.gte(1) 
 }
 
 
