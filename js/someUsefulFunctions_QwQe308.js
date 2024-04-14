@@ -27,6 +27,11 @@ function powsoftcap(num,start,power){
 	}
     return num
 }
+//指数软上限逆运算 #Banana3864提供
+function anti_powsoftcap(result,start,power){
+    let num = result.div(start).pow(power).mul(start)
+    return num
+}
 //e后数字开根
 function expRoot(num,root){
     return ten.pow(num.log10().root(root))
@@ -78,11 +83,13 @@ function depthNum(damage,mode=0){
         num = damage.log(1.5)
         if(num.gte(layers.be.superHpStart())) num = num.sub(damage.log(2.5).sub(layers.be.superHpStart()))
         if(num.gte(layers.be.hyperHpStart())) num = num.sub(damage.log(4).sub(layers.be.hyperHpStart()))
-    }
+        num = powsoftcap(num,layers.be.superhyperHpStart(),n(1.5)) //超究折算
+    }//我在摸鱼
 if(mode==1){
     let superC = one.div(n(2.5).log(1.5))
     let hyperC = one.div(n(4).log(1.5)).add(superC) //高阶折算启用时低阶折算同时启用
-    if(depth.gte(layers.be.hyperHpStart())) num = n(1.5).pow(depth.sub(layers.be.hyperHpStart()).sub(layers.be.superHpStart()).div(one.sub(hyperC)))
+    if(depth.gte(layers.be.superhyperHpStart())) num = n(1.5).pow(anti_powsoftcap(depth,layers.be.superhyperHpStart(),n(1.5)).sub(layers.be.hyperHpStart()).sub(layers.be.superHpStart()).div(one.sub(hyperC))),layers.be.superhyperHpStart(),n(1.5)
+    else if(depth.gte(layers.be.hyperHpStart())) num = n(1.5).pow(depth.sub(layers.be.hyperHpStart()).sub(layers.be.superHpStart()).div(one.sub(hyperC)))
     else if(depth.gte(layers.be.superHpStart())) num = n(1.5).pow(depth.sub(layers.be.superHpStart()).div(one.sub(superC)))
     else num = n(1.5).pow(depth)
 }

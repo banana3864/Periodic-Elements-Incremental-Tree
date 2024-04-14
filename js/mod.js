@@ -13,20 +13,25 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.3.2+",
-	name: "第二周期更新II",
+	num: "0.3.3",
+	name: "第二周期更新III前沿",
 }
 
 let changelog = `<h1>更新日志:</h1><br>
+	<h3>v0.3.3</h3><br>
+		- 增加解锁硼层之后未解锁硼层机制的内容<br>
+		(包括新的氢升级,铍升级)<br>
+		- 版本终点:6硼<br>
+		- 本次更新内容较少(赶工!)<br>
 	<h3>v0.3.2+</h3><br>
 		- 修复上个版本更新带来的一堆平衡问题和NaN问题<br>
 	<h3>v0.3.2</h3><br>
-		- 添加一个新层级和上个版本更新的两个层级的内容<br>
-		- 前三层级完善(新增11个升级)<br>
-		- 修正该树的作者名!!!!!!!<br>
+		- 添加硼层和上个版本更新的锂层,铍层的内容<br>
+		- 基本粒子层,氢层,氦层添加更多升级<br>
+		- 修正该树的作者名<br>
 	<h3>v0.2.2</h3><br>
-		- 添加两个新层级<br>
-		- 氦层更多内容<br>
+		- 添加锂层,铍层<br>
+		- 氦层添加机制<br>
 	<h3>v0.1.3</h3><br>
 		- 修复了购买项有时能买却不能买的bug<br>
 		- 增加新资源<br>
@@ -97,7 +102,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return hasMilestone("b",0)
+	return player.b.points.gte(6)
 }
 
 

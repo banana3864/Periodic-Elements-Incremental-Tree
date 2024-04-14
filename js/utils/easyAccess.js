@@ -50,8 +50,9 @@ function setGridData(layer, id, data) {
 	player[layer].grid[id] = data
 }
 
-function upgradeEffect(layer, id) {
-	return (tmp[layer].upgrades[id].effect)
+function upgradeEffect(layer, id , effnum=1) {
+	if(effnum=1) return (tmp[layer].upgrades[id].effect)
+	if(effnum=2) return (tmp[layer].upgrades[id].effect2)
 }
 //peit作者加的里程碑效果
 function milestoneEffect(layer, id) {

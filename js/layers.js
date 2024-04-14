@@ -360,10 +360,18 @@ addLayer("p", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             effect(x){
-                let a = x.mul(0.16666).add(1)
-                if(hasUpgrade("p",15)) a = x.mul(0.6666).add(1)
-                if(getBuyableAmount("p",12).gte(1)) a = x.mul(buyableEffect("p",12).add(0.6666))
-                return a
+                if(hasUpgrade("h",51)){
+                    x = powsoftcap(x,n(30),n(10))
+                    let a = five.add(buyableEffect("p",12)).pow(x)
+                    a = powsoftcap(a,n(1e30),five)
+                    return a
+                }
+                else {
+                    let a = x.mul(0.16666).add(1)
+                    if(hasUpgrade("p",15)) a = x.mul(0.6666).add(1)
+                    if(getBuyableAmount("p",12).gte(1)) a = x.mul(buyableEffect("p",12).add(0.6666))
+                    return a
+                }              
             },
             purchaseLimit(){
                 let a = ten
@@ -742,6 +750,67 @@ addLayer("h", {
             currencyLayer: "h",
             unlocked(){return hasMilestone("be",2)},
         },  
+        51:{
+            title:"粒子加速器1提升",
+            description:"重构购买项粒子加速器1的效果公式",
+            cost: new Decimal(100),
+            currencyDisplayName: "气球",
+            currencyInternalName: "balloon",
+            currencyLayer: "h",
+            unlocked(){return hasMilestone("h",5)},
+        },  
+        52:{
+            title:"氢能软上限提升",
+            description:"基于气球延迟氢能获取的软上限",
+            cost: new Decimal(108),
+            effect(){
+                let eff = n(1.5).pow(player.h.balloon)
+                eff = powsoftcap(eff,n(1e100),ten)
+                return eff
+            },
+            effectDisplay(){return "x"+format(this.effect())},
+            currencyDisplayName: "气球",
+            currencyInternalName: "balloon",
+            currencyLayer: "h",
+            unlocked(){return hasMilestone("h",5)},
+        },  
+        53:{
+            title:"深度转生宝石",
+            description:"移除计算转生宝石获取基于深度部分的软上限",
+            cost: new Decimal(124),
+            currencyDisplayName: "气球",
+            currencyInternalName: "balloon",
+            currencyLayer: "h",
+            unlocked(){return hasMilestone("h",5)},
+        }, 
+        54:{
+            title:"奖励宝石增幅",
+            description:"奖励宝石获取^2",
+            cost: new Decimal(136),
+            effect(){
+                let eff = two
+                return eff
+            },
+            effectDisplay(){return "^"+format(this.effect())},
+            currencyDisplayName: "气球",
+            currencyInternalName: "balloon",
+            currencyLayer: "h",
+            unlocked(){return hasMilestone("h",5)},
+        },
+        55:{
+            title:"强度折算弱化",
+            description:"强度超级折算的指数-0.5",
+            cost: new Decimal(139),
+            effect(){
+                let eff = n(0.5)
+                return eff
+            },
+            effectDisplay(){return "-"+format(this.effect())},
+            currencyDisplayName: "气球",
+            currencyInternalName: "balloon",
+            currencyLayer: "h",
+            unlocked(){return hasMilestone("h",5)},
+        },
     },
     milestones:{
         0:{
@@ -774,6 +843,12 @@ addLayer("h", {
             done(){return player.he.balloon.gte(14)&&player.he.points.gte(15)},
             unlocked(){return hasMilestone("h",3)},
         },
+        5:{
+            requirementDescription: "100气球",
+            effectDescription: "解锁第五行氢升级",
+            done(){return player.h.balloon.gte(100)},
+            unlocked(){return hasMilestone("h",4)},
+        },
     },
     clickables:{
         11:{
@@ -788,12 +863,12 @@ addLayer("h", {
         },
         12:{
             title:"将氢能输入进气球",
-            display() {return "将你100%的氢能转化成气球(批量)<br>转化后气球数量:" + format(player.h.power.add(1).log(10).sub(2).floor().max(0)) + "下一个气球:" + format(ten.pow(player.h.power.add(1).log(10).sub(2).floor().add(3))) + "氢能<br>(购买项制)"},
+            display() {return "将你100%的氢能转化成气球(批量)<br>转化后气球数量:" + format(player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor().max(0)) + "下一个气球:" + format(layers.h.balloonFloor().pow(player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor().add(3))) + "氢能<br>(购买项制)"},
             unlocked() {return true},
-            canClick() {return player.h.power.gte(ten.pow(player.h.balloon.add(3)))},
+            canClick() {return player.h.power.gte(layers.h.balloonFloor().pow(player.h.balloon.add(3)))},
             onClick() {
-                player.h.balloon = player.h.power.add(1).log(10).sub(2).floor()
-                if(player.h.balloonMax.lt(player.h.power.add(1).log(10).sub(2).floor())) player.h.balloonMax = player.h.power.add(1).log(10).sub(2).floor()
+                player.h.balloon = player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor()
+                if(player.h.balloonMax.lt(player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor())) player.h.balloonMax = player.h.power.add(1).log(10).sub(2).floor()
                 player.h.power = zero
             },
         },
@@ -855,7 +930,7 @@ addLayer("h", {
         } 
         if(hasMilestone("li",5)&&player.h.autoGetHpowerBalloon) {
             player.h.power = player.h.power.add(layers.h.HpowerGet().div(10).mul(diff))
-            player.h.balloon = player.h.power.add(1).log(10).sub(2).floor()
+            player.h.balloon = player.h.power.add(1).log(layers.h.balloonFloor()).sub(2).floor()
             if(player.h.balloonMax.lt(player.h.balloon)) player.h.balloonMax = player.h.balloon
             if(player.h.balloon.lt(player.h.balloonMax)) player.h.balloon = player.h.balloonMax
         }
@@ -892,8 +967,13 @@ addLayer("h", {
         if(hasUpgrade("li",42)) get = get.mul(upgradeEffect("li",42))
         if(hasMilestone("he",7)) get = get.mul(layers.he.temPointBoostHpower())
         if(player.be.depth.gte(36)) get = get.mul(layers.be.depthEffect2())
-        if(get.gte("e61")) get = powsoftcap(get,n("e61"),three) //1软
+        if(get.gte("e61")) get = powsoftcap(get,layers.h.HpowerGetsoftcap1start(),three) //1软
         return get
+    },
+    HpowerGetsoftcap1start(){
+        let start = n("e61")
+        if(hasUpgrade("h",52)) start = start.mul(upgradeEffect("h",52))
+        return start
     },
     addUpTime(){
         let t = player.h.balloon.div(2).floor().mul(10)
@@ -917,6 +997,11 @@ addLayer("h", {
         if(hasUpgrade("h",45)) t = t.add(upgradeEffect("h",45))
         return t
     },
+    balloonFloor(){
+        let floor = ten
+        if(player.be.depth.gt(1300)) floor = floor.sub(layers.be.depthEffect4())
+        return floor
+    },
     tabFormat: { 
         "homepage": {   
             content: [
@@ -924,7 +1009,7 @@ addLayer("h", {
                 "prestige-button",                
                 ["display-text",
                     function(){return "你有 "+format(player.points)+" 基本粒子"}],
-                "blank",["upgrades",[1,2,3,4]]
+                "blank",["upgrades",[1,2,3,4,5]]
             ],
             unlocked(){return hasUpgrade("h",24)||player.li.unlocked}
         },
@@ -937,7 +1022,7 @@ addLayer("h", {
                 "blank",["clickables",[1]],
                 ["display-text",function(){
                     let a = "你有 "+format(player.h.power)+" 氢能"
-                    if(layers.h.HpowerGet().gt("e61")) a = a + "(获取数量已达软上限)"
+                    if(layers.h.HpowerGet().gt(layers.h.HpowerGetsoftcap1start())) a = a + "(获取数量已达软上限)"
                     return a}],
                 ["display-text",function(){
                     let a = "你有 "+format(player.h.balloon)+" 气球"
@@ -957,7 +1042,7 @@ addLayer("h", {
     }, 
 })
 /*
-/////
+////
 /hh/
 /hh/
 /hh/
@@ -967,9 +1052,6 @@ addLayer("h", {
 /hh/   /hh/    ee           去玩Celeste!
 /hh/   /hh/    ee    ee
 /hh/   /hh/     eeeeee
-//为了防止变成be留的白(等一下好像还是变成be了)
-B:好的写法，十分明确
-L:去玩Celeste!
 */
 addLayer("he", {
     name: "he",
@@ -1482,7 +1564,9 @@ addLayer("he", {
     temPointBoostH(){//温度点加氢
         let mult = player.he.temPoint.pow(2.386466).add(1)
         if(mult.gte(layers.he.temPointEffect1SoftcapStart())) mult = mult.div(layers.he.temPointEffect1SoftcapStart()).root(2).add(layers.he.temPointEffect1SoftcapStart())
-        mult = powsoftcap(mult,layers.he.temPointEffect1SoftcapStart().mul("e82"),5)
+        let savemult = powsoftcap(mult,layers.he.temPointEffect1SoftcapStart().mul("e82"),5)
+        let root = savemult.log(1e24).max(5)
+        mult = powsoftcap(mult,layers.he.temPointEffect1SoftcapStart().mul("e82"),root)
         return mult
     }, 
     temPointBoostHpower(){//温度点加氢能
@@ -1495,7 +1579,9 @@ addLayer("he", {
         if(hasUpgrade("he",51)) exp = exp.add(upgradeEffect("he",51))
         let mult = player.he.temPoint.pow(exp).add(1)
         if(mult.gte(layers.he.temPointEffect3SoftcapStart())) mult = mult.div(layers.he.temPointEffect3SoftcapStart()).root(1.5).add(layers.he.temPointEffect3SoftcapStart())
-        mult = powsoftcap(mult,layers.he.temPointEffect3SoftcapStart().mul("2e58"),3)
+        let savemult = powsoftcap(mult,layers.he.temPointEffect3SoftcapStart().mul("2e58"),3)
+        let root = savemult.log(n(1e115).root(3)).max(3)
+        mult = powsoftcap(mult,layers.he.temPointEffect3SoftcapStart().mul("2e58"),root)
         return mult
     },
     temPointEffect1SoftcapStart(){//温度点效果1软上限起点
@@ -1520,7 +1606,9 @@ addLayer("he", {
     temPointdivHecost(){//温度点减氦价格
         let divt = player.he.temPoint.root(2).add(1)
         if(hasMilestone("he",5)) divt = divt.pow(4)
-        if(divt.gte(layers.he.temPointEffect2SoftcapStart())) divt = powsoftcap(divt,layers.he.temPointEffect2SoftcapStart(),five)
+        savedivt = powsoftcap(divt,layers.he.temPointEffect2SoftcapStart(),five)
+        root = savedivt.log(1e36).max(5)
+        divt = powsoftcap(divt,layers.he.temPointEffect2SoftcapStart(),root)
         return divt
     },
     temPointdivLicost(){//温度点减锂价格
@@ -1890,10 +1978,10 @@ addLayer("li", {
         },
         91:{
             title:"研究-71",
-            description:"温度点获取x2(平凡的)",
+            description:"温度点获取x30(平凡的)",
             cost: new Decimal(16),
             effect(){
-                let effect = two
+                let effect = ten.mul(3)
                 return effect
             },
             effectDisplay(){return "x"+format(this.effect()) },
@@ -2262,6 +2350,11 @@ addLayer("be", {
     },
     row: 1,
     layerShown(){return player.be.unlocked||hasMilestone("he",6)},
+    passiveGeneration(){
+        let a = zero
+        if(hasMilestone("b",1)) a = one
+        return one
+    },
     milestones:{
         0:{
             requirementDescription: "1铍",
@@ -2332,6 +2425,18 @@ addLayer("be", {
             done(){return player.be.depth.gte(1100)},
             unlocked(){return hasMilestone("be",6)},
         },
+        10:{
+            requirementDescription: "深度达到1500",
+            effectDescription(){return "使转生宝石数量不再被硼的第一个里程碑限制,每秒自动获取当前重置可获得的100%转生宝石"},
+            done(){return player.be.depth.gte(1500)},
+            unlocked(){return player.b.unlocked},
+        },
+        11:{
+            requirementDescription: "深度达到1800",
+            effectDescription(){return "深度第三效果的软上限起始x1e30"},
+            done(){return player.be.depth.gte(1800)},
+            unlocked(){return player.b.unlocked},
+        },
     },
     clickables:{
         11:{
@@ -2361,7 +2466,7 @@ addLayer("be", {
             title:"转生",
             display() {return "重置深度,宝石,宝石升级,镐子钻头可购买,同时基于重置前的深度获取转生宝石<br>当前重置可获得 " + format(layers.be.prestiGemsGet()) + " 转生宝石"}, 
             unlocked() {return hasMilestone("be",3)},
-            canClick() {return player.be.depth.gte(60)},
+            canClick() {return player.be.depth.gte(60)&&!hasMilestone("b",0)},
             onClick() {
                 player.be.prestiGems = player.be.prestiGems.add(layers.be.prestiGemsGet())
                 player.be.bittingTime = zero
@@ -2369,7 +2474,7 @@ addLayer("be", {
                 player.be.depth = zero
                 player.be.gems = zero
                 if(!hasMilestone("be",8)){setBuyableAmount("be",11,zero)
-                setBuyableAmount("be",12,zero)} //你这个镐子升级好漫长
+                setBuyableAmount("be",12,zero)}
                 let U = [11,12,13,14,15];for (id in U){if(hasUpgrade("be",U[id])){player.be.upgrades.splice(player.be.upgrades.indexOf(U[id]),1)}}
             },
             style() { return { 'background-color': this.canClick()?"#60B060":"#BF8F8F", filter: "brightness(" + new Decimal(100) + "%)", color: "#000000",'border-radius': "5px", height: "120px", width: "200px" } },
@@ -2578,6 +2683,80 @@ addLayer("be", {
             currencyInternalName:"prestiGems",
             currencyLayer:"be",      
         },
+        31:{
+            title:"反向镐子强度",
+            description:"基于镐子等级获得额外的强度等级",
+            effect(){
+                let effect = getBuyableAmount("be",11).root(1.8).div(4).max(0.5)
+                return effect
+            },
+            effectDisplay(){return "+Lv."+format(this.effect())},
+            cost: new Decimal(133000000),
+            unlocked(){return player.b.unlocked},
+            currencyDisplayName:"转生宝石",
+            currencyInternalName:"prestiGems",
+            currencyLayer:"be",      
+        },
+        32:{
+            title:"转生宝石-宝石",
+            description:"转生宝石增幅宝石与深度奖励宝石获取,同时使宝石获取能增幅深度奖励宝石获取",
+            effect(){
+                let effect = player.be.prestiGems.max(1).min("e50")
+                return effect
+            },
+            effect2(){
+                let eff = layers.be.gemGet().root(4)
+                return eff
+            },
+            effectDisplay(){return "x"+format(this.effect())+",x"+format(this.effect2())},
+            cost: new Decimal(134000000),
+            unlocked(){return player.b.unlocked},
+            currencyDisplayName:"转生宝石",
+            currencyInternalName:"prestiGems",
+            currencyLayer:"be",      
+        },
+        33:{
+            title:"强度强化强度",
+            description:"基于强度等级(额外等级不计)强化强度的基础效果",
+            effect(){
+                let effect = getBuyableAmount("be",21).div(500)
+                return effect
+            },
+            effectDisplay(){return "+"+format(this.effect())},
+            cost: new Decimal(190101091),
+            unlocked(){return player.b.unlocked},
+            currencyDisplayName:"转生宝石",
+            currencyInternalName:"prestiGems",
+            currencyLayer:"be",      
+        },
+        34:{
+            title:"钻头折算强度平衡",
+            description:"钻头超级折算的指数-0.5",
+            effect(){
+                let effect = n(0.5)
+                return effect
+            },
+            effectDisplay(){return "-"+format(this.effect())},
+            cost: new Decimal(5e12),
+            unlocked(){return player.b.unlocked},
+            currencyDisplayName:"转生宝石",
+            currencyInternalName:"prestiGems",
+            currencyLayer:"be",      
+        },
+        35:{
+            title:"效果硬上限延迟",
+            description:"深度第四效果硬上限+0.5",
+            effect(){
+                let effect = n(0.5)
+                return effect
+            },
+            effectDisplay(){return "+"+format(this.effect())},
+            cost: new Decimal(1e13),
+            unlocked(){return player.b.unlocked},
+            currencyDisplayName:"转生宝石",
+            currencyInternalName:"prestiGems",
+            currencyLayer:"be",      
+        },
     },
     buyables:{
         11:{
@@ -2647,6 +2826,7 @@ addLayer("be", {
             },
             superPower(){
                 let power = n(2)
+                if(hasUpgrade("be",34)) power = power.sub(upgradeEffect("be",34))
                 return power
             },
             unlocked(){return hasMilestone("be",3)||hasMilestone("be",4)},
@@ -2668,7 +2848,9 @@ addLayer("be", {
                 return "价格: <br><h1 style=color:#5EE55E>" + format(this.cost()) + "</h1> 转生宝石 <br>强度等级: <h1 style=color:#3F3F6F>Lv."+format(getBuyableAmount("be",21),0)+"</h1>"+al+"<br>效果:增幅镐子,钻头伤害底数+" + format(this.effect()) + ""},
             canAfford() { return player.be.prestiGems.gte(this.cost())},
             effect(x){ 
-                let estimatedEffect = x.add(this.addLevel()).div(100)
+                let floor = one.div(100)
+                if(hasUpgrade("be",33)) floor = floor.add(upgradeEffect("be",33))
+                let estimatedEffect = floor.mul(x.add(this.addLevel()))
                 return estimatedEffect
             },
             buy(){
@@ -2681,11 +2863,13 @@ addLayer("be", {
             },
             superPower(){
                 let power = n(2)
+                if(hasUpgrade("h",55)) power = power.sub(upgradeEffect("h",55))
                 return power
             },
             addLevel(){
                 let n = zero
-                if(hasUpgrade("be",21)) n=n.add(upgradeEffect("be",21))
+                if(hasUpgrade("be",21)) n = n.add(upgradeEffect("be",21))
+                if(hasUpgrade("be",31)) n = n.add(upgradeEffect("be",31))
                 return n
             },
             unlocked(){return hasMilestone("be",5)},
@@ -2758,18 +2942,25 @@ addLayer("be", {
         if(hasUpgrade("be",25)) start = start.add(upgradeEffect("be",25))
         return start
     },
+    superhyperHpStart(){
+        let start = n(1500)
+        return start
+    },
     gemGet(){
         let dg = layers.be.pickaxeDamage()
         if(dg.gte(12)) dg = powsoftcap(dg,n(12),three)
         dg = dg.floor()
         let get = player.be.depth.root(1.5).floor().mul(dg)
         if(player.be.depth.gte(36)) get = get.mul(layers.be.depthEffect2())
+        if(hasUpgrade("be",32)) get = get.mul(upgradeEffect("be",32))
         return get
     },
     rewardGemt(){
         let rewardGemt = n(1.1).pow(player.be.depth)
         rewardGemt = powsoftcap(rewardGemt,n(1e30),5)
         if(player.be.depth.gte(36)) rewardGemt = rewardGemt.mul(layers.be.depthEffect2())
+        if(hasUpgrade("be",32)) rewardGemt = rewardGemt.mul(upgradeEffect("be",32).mul(upgradeEffect("be",32,2)))
+        if(hasUpgrade("h",54)) rewardGemt = rewardGemt.pow(upgradeEffect("h",54))
         return rewardGemt
     },
     depthEffect1(){
@@ -2788,7 +2979,16 @@ addLayer("be", {
     depthEffect3(){
         let eff = three.pow(player.be.depth.sub(255))
         eff = eff.max(1)
-        eff = powsoftcap(eff,layers.be.depthEffect2softcap(),5)
+        let saveeff = powsoftcap(eff,layers.be.depthEffect3softcap(),5)
+        let root = saveeff.log(1e19).max(5)
+        eff = powsoftcap(eff,layers.be.depthEffect3softcap(),root)
+        return eff
+    },
+    depthEffect4(){
+        let eff = player.be.depth.sub(1298).div(100).root(2)
+        eff = eff.max(0)
+        if(eff.gt(3)) eff = three.add(player.be.depth.sub(2198).root(4).div(100))
+        eff = eff.min(layers.be.depthEffect4hardcap())
         return eff
     },
     depthEffect1softcap(){
@@ -2800,7 +3000,13 @@ addLayer("be", {
         return start
     },
     depthEffect3softcap(){
-        let start = n(1e10)
+        let start = n(1024)
+        if(hasMilestone("be",11)) start = start.mul(1e30)
+        return start
+    },
+    depthEffect4hardcap(){
+        let start = n(2)
+        if(hasUpgrade("be",35)) start = start.add(upgradeEffect("be",35))
         return start
     },
     loadingPickaxe(){
@@ -2811,17 +3017,12 @@ addLayer("be", {
     },
     prestiGemsGet(){
         let get = player.be.depth.sub(59).max(0).pow(2)
-        get = powsoftcap(get,two.pow(10),three)
+        if(!hasUpgrade("h",53)) get = powsoftcap(get,two.pow(10),three)
         if(hasMilestone("be",9)) get = get.mul(milestoneEffect("be",9))
+        if(hasMilestone("b",0)) get = get.mul(100)
         return get
     },
     update(diff){
-        if(player.be.beDamaged.gte(layers.be.deptHp())){
-            if(player.be.depth.lt(8)) player.be.gems = player.be.gems.add(layers.be.deptHp().root(2).floor())
-            if(player.be.depth.gte(8)) player.be.gems = player.be.gems.add(layers.be.deptHp().root(3).floor())
-            player.be.beDamaged = player.be.beDamaged.sub(layers.be.deptHp())
-            player.be.depth = player.be.depth.add(1)
-        }
         if(player.be.bittingTime.gt(0)){
             player.be.bittingTime = player.be.bittingTime.sub(diff).max(0)
             player.be.beDamaged = player.be.beDamaged.add(layers.be.bitDamage().mul(diff))
@@ -2829,6 +3030,7 @@ addLayer("be", {
         player.be.loadingPickaxe = player.be.loadingPickaxe.sub(diff).max(0)
         if(hasUpgrade("he",65)&&layers.be.loadingPickaxe().lte(diff*2)){
             player.be.beDamaged = player.be.beDamaged.add(layers.be.pickaxeDamage().mul(diff*2).div(layers.be.loadingPickaxe()))
+            player.be.gems = player.be.gems.add(layers.be.gemGet().mul(diff*2).div(layers.be.loadingPickaxe()))
         }
         else if(hasUpgrade("be",22)&&player.be.loadingPickaxe.eq(0)){
             player.be.beDamaged = player.be.beDamaged.add(layers.be.pickaxeDamage())
@@ -2843,6 +3045,16 @@ addLayer("be", {
             if(player.be.depth.lt(depthNum(player.be.beDamaged)))player.be.depth = depthNum(player.be.beDamaged).floor()
             if(player.be.depth.gte(8)) player.be.gems = player.be.gems.add(layers.be.rewardGemt().mul(diff))
         }
+        else if(player.be.beDamaged.gte(layers.be.deptHp())){
+            if(player.be.depth.lt(8)) player.be.gems = player.be.gems.add(layers.be.deptHp().root(2).floor())
+            if(player.be.depth.gte(8)) player.be.gems = player.be.gems.add(layers.be.deptHp().root(3).floor())
+            player.be.beDamaged = player.be.beDamaged.sub(layers.be.deptHp())
+            player.be.depth = player.be.depth.add(1)
+        }
+        if(hasMilestone("be",10)){
+            player.be.prestiGems = player.be.prestiGems.add(layers.be.prestiGemsGet().mul(diff))
+        }
+        else if(hasMilestone("b",0)&&layers.be.prestiGemsGet().gte(player.be.prestiGems)) player.be.prestiGems = layers.be.prestiGemsGet().max(0)
     },
     tabFormat:{
         "homepage": {   
@@ -2867,6 +3079,7 @@ addLayer("be", {
                     let text = ""
                     if(player.be.depth.gte(layers.be.superHpStart())) text += "当深度到达"+format(layers.be.superHpStart())+"以后,深度将超级折算!<br>"
                     if(player.be.depth.gte(layers.be.hyperHpStart())) text += "当深度到达"+format(layers.be.hyperHpStart())+"以后,深度将究极折算!<br>"
+                    if(player.be.depth.gte(layers.be.superhyperHpStart())) text += "当深度到达"+format(layers.be.superhyperHpStart())+"以后,深度将超究折算!<br>"
                     return text
                 }],"blank",
                 ["display-text",function(){
@@ -2886,9 +3099,14 @@ addLayer("be", {
                     if(player.be.depth.gte(256)) {
                         text3 = "深度第三效果:温度点获取变为原来的" + format(layers.be.depthEffect3()) + "x"
                         if(layers.be.depthEffect3().gte(layers.be.depthEffect3softcap())) text3 += "(已达软上限)"
-                        text4 = "当深度到达114514时,解锁深度第四效果"
+                        text4 = "当深度到达1300时,解锁深度第四效果"
                     }
-                    return text1 + "<br>" + text2 + "<br>" + text3
+                    if(player.be.depth.gte(1300)) {
+                        text4 = "深度第四效果:计算气球获取的底数 -" + format(layers.be.depthEffect4())
+                        if(layers.be.depthEffect4().gte(layers.be.depthEffect4hardcap())) text4 += "(已达硬上限)"
+                        text5 = "当深度到达16523956234895629385时,解锁深度第五效果"
+                    }
+                    return text1 + "<br>" + text2 + "<br>" + text3 + "<br>" + text4
                 }],
             ],
             unlocked(){return hasUpgrade("li",71)}
@@ -2905,7 +3123,7 @@ addLayer("be", {
             content: [
                 "main-display","prestige-button",   
                 "blank",["display-text",function(){return "你有 " + format(player.be.gems) + " 宝石"}],
-                ["upgrades",[1,2]]
+                ["upgrades",[1,2,3]]
             ],
             unlocked(){return hasUpgrade("li",71)}
         },
@@ -2917,8 +3135,25 @@ addLayer("be", {
             unlocked(){return hasMilestone("be",4)}
         },
     },
-},
-)
+},)
+/*
+|||||\\\\\
+|||||    \\
+|||||     \\
+|||||      ||
+|||||     //
+|||||    //
+|||||====
+|||||    \\
+|||||     \\
+|||||      ||
+|||||     //
+|||||    //
+|||||/////
+
+L:good
+Note: Periodic Elements Incremental Tree is a completely free incremental game based on The-Modding-Tree Engine. Visit banana3864.github.io/PEIT for the latest & official game. If you are not playing on this website, please go to the official website above. Author: Liuliu66686(main) & Banana3864
+*/
 addLayer("b", {
     name: "b",
     symbol: "B",
@@ -2945,16 +3180,22 @@ addLayer("b", {
     },
     row: 1,
     layerShown(){return player.b.unlocked||hasUpgrade("p",55)},
+    resetsNothing(){return hasMilestone("b",1)},
     milestones:{
         0:{
             requirementDescription: "3硼",
-            effectDescription: "到达版本终点,注意你的隐藏成就是否完成,完成该里程碑后你将无法完成!!",
+            effectDescription: "转生宝石获取x100,但转生宝石数量将锁定为重置时可获取的转生宝石数量的最大值(这好像是加成)",
             done(){return player.b.points.gte(3)},
             unlocked(){return player.b.unlocked},
         },
+        1:{
+            requirementDescription: "4硼",
+            effectDescription: "每秒自动获取当前重置可获得的100%铍,硼不再重置任何东西",
+            done(){return player.b.points.gte(4)},
+            unlocked(){return player.b.unlocked},
+        },
     },
-},
-)
+},)
 addLayer("a", {
     startData() { return {
         unlocked: true,
@@ -3017,7 +3258,7 @@ addLayer("a", {
         17: {
             name: "17",
             image: "png/成就_17.png",
-            done() {return player.he.clicks.gte(1000)},
+            done() {return player.he.clicks.gte(1000)||hasAchievement("a",17)},
             doneTooltip: "在一次第二行或更高的重置内点击1000次冷却氦按钮",
             style() { return { 'background-color': hasAchievement("a",17)?"#77BF5F":"#BF8F8F", filter: "brightness(" + new Decimal(100) + "%)", color: "#FFFFFF",'border-radius': "0px", height: "96px", width: "96px" } },
             unlocked() {return hasAchievement("a",17)}
