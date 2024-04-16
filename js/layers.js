@@ -3086,6 +3086,8 @@ addLayer("be", {
                     let text1 = "当深度到达10后,解锁深度第一效果"
                     let text2 = ""
                     let text3 = ""
+		    let text4 = ""
+		    let text5 = ""
                     if(player.be.depth.gte(10)) {
                         text1 = "深度第一效果:电能获取与电池容量变为原来的" + format(layers.be.depthEffect1()) + "x"
                         if(layers.be.depthEffect1().gte(layers.be.depthEffect1softcap())) text1 += "(已达软上限)"
