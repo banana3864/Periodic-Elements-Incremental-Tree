@@ -1,7 +1,2 @@
-# The-Modding-Tree
-
-An incremental game engine based on The Prestige Tree. It still requires programming knowledge, but it's mostly pretty easy things and copy/pasting.
-
-[Look here for a tutorial on getting started with modding with TMT](docs/tutorials/getting-started.md)
-
-You can look in the [documentation](docs/!general-info.md) for more information on how it all works, or look at the code in layers.js to see what it all looks like.
+This website is no longer available. Banana3864's QQ account will be logged off in 15 days. If you still want to contact me, please use the email address.
+这个网页不再有效，因为Banana3864的QQ账号会在15天内注销。若仍需联系，可以通过我主页的邮箱地址。
